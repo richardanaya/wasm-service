@@ -24,7 +24,7 @@
           const registration = await navigator.serviceWorker.register(
             "./wasm-service.js",
             {
-              scope: "/",
+              scope: location.pathname,
             }
           );
           if (registration.installing) {
