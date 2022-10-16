@@ -1,7 +1,21 @@
 <html>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
   <script src="https://unpkg.com/htmx.org@1.8.2"></script>
   <body>
-    <button hx-post="/wasm/clicked" hx-swap="outerHTML">Click Me</button>
+    <h1>HTMLX + Service Workers + WebAssembly + Rust</h1>
+    <div>
+      This is a simple proof of concept that shows how you could use
+      <a href="https://htmx.org/">HTMX</a> and Rust for frontend development.
+      The basic idea in HTMX is that a webserver is being called on interactions
+      with DOM elements, and returning back snippets of HTML that will replace
+      certain DOM elements. Instead of going to a real web serviceWorker this
+      project shows how service workers can intercept calls to a server and
+      return back responses driven from WebAssembly instead.
+    </div>
+    <br />
+    <div>
+      <button hx-post="/wasm/clicked" hx-swap="outerHTML">Click Me</button>
+    </div>
   </body>
   <script>
     const registerServiceWorker = async () => {
