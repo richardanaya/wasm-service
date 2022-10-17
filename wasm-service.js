@@ -29,6 +29,10 @@ const waitForAppInstance = () =>
     }
   });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(clients.claim());
+});
+
 self.addEventListener("fetch", (event) => {
   const appIndex = event.request.url.indexOf("/wasm/");
   if (appIndex > -1) {
