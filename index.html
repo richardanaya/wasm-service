@@ -1,46 +1,52 @@
+<!DOCTYPE html>
 <html>
+
+<head>
+  <meta charset="utf-8" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
   <script src="https://unpkg.com/htmx.org@1.8.2"></script>
-  <body>
-    <h1>HTMLX + Service Workers + WebAssembly + Rust</h1>
-    <div>
-      This is a simple proof of concept that shows how you could use
-      <a href="https://htmx.org/">HTMX</a> and Rust for frontend development.
-      The basic idea in HTMX is that a webserver is being called on interactions
-      with DOM elements, and returning back snippets of HTML that will replace
-      certain DOM elements. Instead of going to a real web serviceWorker this
-      project shows how service workers can intercept calls to a server and
-      return back responses driven from WebAssembly instead.
-      <br>
-      Repo: <a href="https://github.com/richardanaya/wasm-service">https://github.com/richardanaya/wasm-service</a>
-    </div>
-    <br />
-    <div>
-      <button hx-post="/wasm/clicked" hx-swap="outerHTML">Click Me</button>
-    </div>
-  </body>
-  <script>
-    const registerServiceWorker = async () => {
-      if ("serviceWorker" in navigator) {
-        try {
-          const registration = await navigator.serviceWorker.register(
-            "./wasm-service.js",
-            {
-              scope: location.pathname,
-            }
-          );
-          if (registration.installing) {
-            console.log("Service worker installing");
-          } else if (registration.waiting) {
-            console.log("Service worker installed");
-          } else if (registration.active) {
-            console.log("Service worker active");
-          }
-        } catch (error) {
-          console.error(`Registration failed with ${error}`);
+</head>
+
+<body>
+  <h1>HTMLX + Service Workers + WebAssembly + Rust</h1>
+  <div>
+    This is a simple proof of concept that shows how you could use
+    <a href="https://htmx.org/">HTMX</a> and Rust for frontend development.
+    The basic idea in HTMX is that a webserver is being called on interactions
+    with DOM elements, and returning back snippets of HTML that will replace
+    certain DOM elements. Instead of going to a real web serviceWorker this
+    project shows how service workers can intercept calls to a server and
+    return back responses driven from WebAssembly instead.
+    <br>
+    Repo: <a href="https://github.com/richardanaya/wasm-service">https://github.com/richardanaya/wasm-service</a>
+  </div>
+  <br />
+  <div>
+    <button hx-post="/wasm/clicked" hx-swap="innerHTML" hx-target="#target">Click Me</button>
+    <div id="target"></div>
+  </div>
+</body>
+<script>
+  const registerServiceWorker = async () => {
+    if ("serviceWorker" in navigator) {
+      try {
+        const registration = await navigator.serviceWorker.register("sw.js", { scope: location.origin, });
+        if (registration.installing) {
+          console.log("Service worker installing");
+        } else if (registration.waiting) {
+          console.log("Service worker installed");
+        } else if (registration.active) {
+          console.log("Service worker active");
         }
+        console.log("Notifying serviceWorker", navigator.serviceWorker.controller.postMessage({ type: 'clientloaded' }));
+      } catch (error) {
+        console.error(`Registration failed with ${error}`);
       }
-    };
-    registerServiceWorker();
-  </script>
+    } else {
+      console.error("serviceWorker is missing from `navigator`. Note that service workers require https or serving from localhost");
+    }
+  };
+  registerServiceWorker();
+</script>
+
 </html>
