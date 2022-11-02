@@ -1,9 +1,17 @@
 use serde::{Deserialize, Serialize};
 use std::sync::{Mutex, MutexGuard};
 
+static mut COUNTER: u64 = 0;
+
 fn handle_request(request: &Request) -> String {
     if let Some(url) = &request.url {
-        format!("<div>Hey <b>Darrly</b>, this html is generated from Rust WASM using a service worker that intercepts http calls and returns HTML for {}", url).to_string()
+        let count;
+        // This is not unsafe because WASM can only run in single-threaded environments
+        unsafe {
+            COUNTER += 1;
+            count = COUNTER;
+        }
+        format!("<div>Hey <b>Darrly</b>, this html is generated from Rust WASM using a service worker that intercepts http calls and returns HTML for {} <br><div>Count: {}</div>", url, count).to_string()
     } else {
         "error".to_string()
     }
@@ -69,4 +77,9 @@ pub extern "C" fn response_len() -> usize {
     } else {
         0
     }
+}
+
+#[no_mangle]
+pub extern "C" fn stop() -> usize {
+    0
 }
