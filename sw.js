@@ -165,11 +165,9 @@ function writeUtf8ToMemory(app, bytes, start) {
 }
 
 self.addEventListener("fetch", async (event) => {
-  if (!event.request.url.includes("/wasm/") || WasmAppStatus().status != "resolved") {
-    // Don't call event.respondWith so it falls back to browser's default response handling.
-    // If the app is not loaded then pass all requests to the backend server.
-    // console.log("fetch passthrough", { method: event.request.method, url: event.request.url });
-    return;
+  if (!event.request.url.startsWith(event.target.registration.scope) || WasmAppStatus().status != "resolved") {
+    // console.log("fetch passthrough", { method: event.request.method, url: event.request.url, event });
+    return; // fall back to browser default fetch handling
   }
   // console.log("fetch override", { method: event.request.method, url: event.request.url });
 

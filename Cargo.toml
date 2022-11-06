@@ -3,12 +3,18 @@ name = "wasm-service"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
-
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
+html-to-string-macro = "0.2.4"
+lazy_static = "1.4.0"
+matchit = "0.6.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+url = "2.3.1"
+
+[profile.release]
+strip = true    # Automatically strip symbols from the binary.
+opt-level = "z" # Optimize for size.
+lto = true
