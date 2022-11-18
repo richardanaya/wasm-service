@@ -7,7 +7,7 @@
 // changed. If the app definition has changed it creates a new instance and
 // switches to it.
 //
-// If this service worker definition changes,
+// If this service worker definition changes, it automatically reloads itself.
 
 ////**** Helper Definitions ****////
 
@@ -59,7 +59,10 @@ const skewnormal = (min, max, skew = 1, sigma = 4) => {
 
 ////**** Service Worker & WebAssembly instance lifecycle management ****////
 
-const appUri = "app.wasm";
+const appUri = "/app.wasm";
+
+// Enable debug logging on a running instance by setting DEBUG=true in the console.
+var DEBUG = false;
 
 var WasmApp, WasmAppStatus;
 
@@ -140,15 +143,15 @@ self.addEventListener("activate", (event) => {
 
 // Check for a new app when a new client loads
 self.addEventListener('message', (event) => {
-  if (event.data.type === 'clientloaded') {
+  if (event.data.type === 'clientattached') {
     console.log("received message", { type: event.data.type, event });
-    event.waitUntil(LoadWasmApp("clientloaded"));
+    event.waitUntil(LoadWasmApp("clientattached"));
   }
 });
 
 ////**** Pass fetch events to WASM worker ****////
 
-const utf8dec = new TextDecoder("utf-8");
+const utf8dec = new TextDecoder("utf8");
 const utf8enc = new TextEncoder();
 
 function readUtf8FromMemory(app, start, len) {
@@ -164,37 +167,50 @@ function writeUtf8ToMemory(app, bytes, start) {
   memory.set(bytes, start);
 }
 
-self.addEventListener("fetch", async (event) => {
-  if (!event.request.url.startsWith(event.target.registration.scope) || WasmAppStatus().status != "resolved") {
-    // console.log("fetch passthrough", { method: event.request.method, url: event.request.url, event });
+self.addEventListener("fetch", (event) => {
+  let url = new URL(event.request.url);
+  const ignored = ["/sw.js", "/app.wasm"];
+
+  let shouldOverride = url.origin === event.target.location.origin
+    && !url.pathname.startsWith("/assets/")
+    && !ignored.includes(url.pathname)
+    && WasmAppStatus().status === "resolved";
+
+  if (DEBUG) console.log("fetch event received", { overriding: shouldOverride, method: event.request.method, url, event })
+
+  if (!shouldOverride) {
     return; // fall back to browser default fetch handling
   }
-  // console.log("fetch override", { method: event.request.method, url: event.request.url });
 
-  let app = await WasmApp;
+  event.respondWith((async () => {
+    try {
+      const app = await WasmApp;
 
-  try {
-    const request = JSON.stringify({
-      method: event.request.method,
-      url: event.request.url,
-      headers: Array.from(event.request.headers)
-    });
+      const request = JSON.stringify({
+        method: event.request.method,
+        url: event.request.url,
+        headers: Array.from(event.request.headers),
+        body: await event.request.text(),
+      });
 
-    const bytes = utf8enc.encode(request);
-    const len = bytes.length;
-    const requestPtr = app.exports.allocate_request(len);
-    writeUtf8ToMemory(app, bytes, requestPtr);
-    const responseHandle = app.exports.fetch();
-    const responsePtr = app.exports.response_ptr();
-    const responseLen = app.exports.response_len();
-    const responseContent = readUtf8FromMemory(app, responsePtr, responseLen);
+      if (DEBUG) console.log("fetch request sent to wasm:", request);
 
-    event.respondWith(
-      new Response(responseContent, {
+      const bytes = utf8enc.encode(request);
+      const len = bytes.length;
+      const requestPtr = app.exports.allocate_request(len);
+      writeUtf8ToMemory(app, bytes, requestPtr);
+      const responseHandle = app.exports.fetch();
+      const responsePtr = app.exports.response_ptr();
+      const responseLen = app.exports.response_len();
+      const responseContent = readUtf8FromMemory(app, responsePtr, responseLen);
+
+      if (DEBUG) console.log("fetch response from wasm:", responseContent);
+
+      return new Response(responseContent, {
         headers: { "Content-Type": "text/html" },
-      })
-    );
-  } catch (error) {
-    console.log("error query wasm app for result", { error, event });
-  }
+      });
+    } catch (error) {
+      console.error("error querying wasm app for result", { error, event });
+    }
+  })());
 });
