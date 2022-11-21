@@ -2,6 +2,7 @@
 <html>
 
 <head>
+  <meta charset="utf-8" />
   <title>About</title>
   <link rel="stylesheet" href="/assets/main.css" />
   <link rel="stylesheet" href="https://unpkg.com/water.css@2.1.1/out/water.css"
@@ -11,7 +12,7 @@
     crossorigin="anonymous"></script>
   <script>
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/sw.js")
+      navigator.serviceWorker.register("sw.js")
         .then(reg => {
           reg.addEventListener('statechange', event => {
             console.log("received `statechange` event", { reg, event })
