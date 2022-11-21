@@ -67,8 +67,8 @@ mod site {
     pub(crate) fn tabs(selected: Tabs) -> String {
         html! {
         <div class="nav-tabs" hx-target="closest body">
-            <a href="/" hx-get="/;nav" hx-push-url="/" { if selected == Tabs::About { r#"class="selected""# } else {""} }>"About"</a>
-            <a href="/todos" hx-get="/todos;nav" hx-push-url="/todos" { if selected == Tabs::Todos { r#"class="selected""# } else {""} }>"Todos"</a>
+            <a href="" hx-get="./;nav" hx-push-url="" { if selected == Tabs::About { r#"class="selected""# } else {""} }>"About"</a>
+            <a href="todos" hx-get="./todos;nav" hx-push-url="todos" { if selected == Tabs::Todos { r#"class="selected""# } else {""} }>"Todos"</a>
             <style>r#"
             .nav-tabs>a {
                 padding: 1em;
@@ -120,7 +120,7 @@ mod about {
                 "Repo: "<a href="https://github.com/richardanaya/wasm-service">"https://github.com/richardanaya/wasm-service"</a>
             </div>
             <br />
-            <button hx-post=";clicked" hx-swap="innerHTML" hx-target="#target">"Click Me"</button>
+            <button hx-post="./;clicked" hx-swap="innerHTML" hx-target="#target">"Click Me"</button>
             <div>
                 <div id="target">{ about_clicked_display(url) }</div>
             </div>
@@ -271,9 +271,9 @@ mod todos {
         let id = item.id;
         html! {
             <li hx-target="this" hx-swap="outerHTML">
-                <input type="checkbox" { if item.done { "checked" } else { "" }} hx-post={ format!("/todos/{id}/toggle") }/>
+                <input type="checkbox" { if item.done { "checked" } else { "" }} hx-post={ format!("./todos/{id}/toggle") }/>
                 <label>{ item.label.as_str() }</label>
-                <button class="delete" hx-delete={ format!("/todos/{id}") }></button>
+                <button class="delete" hx-delete={ format!("./todos/{id}") }></button>
             </li>
         }
     }
@@ -281,7 +281,7 @@ mod todos {
     fn input_frag(oob: bool) -> String {
         html! {
             <input id="todo-new" name="todo-new" placeholder="What needs to be done?" autofocus
-                hx-post="/todos;add" hx-target=".todos ul" hx-swap="afterbegin" { if oob { r#"hx-swap-oob="true""# } else { "" } } />
+                hx-post="./todos;add" hx-target=".todos ul" hx-swap="afterbegin" { if oob { r#"hx-swap-oob="true""# } else { "" } } />
         }
     }
 
@@ -293,7 +293,7 @@ mod todos {
 
         html! {
             <input id="toggle-all" type="checkbox" { if alldone { "checked" } else { "" } }
-                hx-post="/todos;toggleall" hx-target="this" { if oob { r#"hx-swap-oob="true""# } else { "" } } />
+                hx-post="./todos;toggleall" hx-target="this" { if oob { r#"hx-swap-oob="true""# } else { "" } } />
         }
     }
 
@@ -315,15 +315,15 @@ mod todos {
         html! {
         <fieldset class="filter" hx-swap="none">
             <legend>"Filter"</legend>
-            <input type="radio" id="filter-all" name="filter" value="All" { if selected_filter == All {"checked"} else {""} }  hx-post="/todos;filter=All" />
+            <input type="radio" id="filter-all" name="filter" value="All" { if selected_filter == All {"checked"} else {""} }  hx-post="./todos;filter=All" />
             <label for="filter-all">"All"</label>
-            <input type="radio" id="filter-active" name="filter" value="Active" { if selected_filter == Active {"checked"} else {""} } hx-post="/todos;filter=Active" />
+            <input type="radio" id="filter-active" name="filter" value="Active" { if selected_filter == Active {"checked"} else {""} } hx-post="./todos;filter=Active" />
             <label for="filter-active">"Active"</label>
-            <input type="radio" id="filter-completed" name="filter" value="Completed" { if selected_filter == Completed {"checked"} else {""} } hx-post="/todos;filter=Completed" />
+            <input type="radio" id="filter-completed" name="filter" value="Completed" { if selected_filter == Completed {"checked"} else {""} } hx-post="./todos;filter=Completed" />
             <label for="filter-completed">"Completed"</label>
         </fieldset>
         <style>r#"
-        .filter {
+S        .filter {
             max-width: fit-content;
         }
         .filter input[type=radio] {
@@ -478,7 +478,8 @@ fn handle_request(request: &Request) -> String {
         Ok(r) => r,
         Err(e) => return html! { <p>"Failed to build router"</p><p>{ e }</p> },
     };
-    let (handler, params) = match router.at(request.path()) {
+    let path = request.path().trim_start_matches("/wasm-service");
+    let (handler, params) = match router.at(path) {
         Ok(ok) => (ok.value, ok.params),
         Err(matchit::MatchError::NotFound) => return html! { <p>"Not found"</p> },
         Err(e) => return html! { <p>"Error matching request handler: " {e}</p> },
