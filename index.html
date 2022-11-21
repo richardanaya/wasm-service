@@ -2,13 +2,54 @@
 <html>
 
 <head>
-  <meta charset="utf-8" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css">
-  <script src="https://unpkg.com/htmx.org@1.8.2"></script>
+  <title>About</title>
+  <link rel="stylesheet" href="/assets/main.css" />
+  <link rel="stylesheet" href="https://unpkg.com/water.css@2.1.1/out/water.css"
+    integrity="sha384-eHoWBq4xGyEfS3rmZe6gvzlNS/nNJhiPPbKCJN1cQHJukU+q6ji3My2fJGYd1EBo" crossorigin="anonymous" />
+  <script src="https://unpkg.com/htmx.org@1.8.2/dist/htmx.js"
+    integrity="sha384-dUlt2hvoUDyqJ29JH9ln6o/B23lVQiQm8Z0+oEuPBWwKXiyG2MozxxFsCKWM7dLl"
+    crossorigin="anonymous"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js")
+        .then(reg => {
+          reg.addEventListener('statechange', event => {
+            console.log("received `statechange` event", { reg, event })
+          });
+          console.log("service worker registered", reg);
+          reg.active.postMessage({ type: 'clientattached' });
+        }).catch(err => {
+          console.error("service worker registration failed", err);
+        });
+      navigator.serviceWorker.addEventListener('controllerchange', event => {
+        console.log("received `controllerchange` event", event);
+      });
+    } else {
+      console.error("serviceWorker is missing from `navigator`. Note service workers must be served over https or on localhost");
+    }
+  </script>
 </head>
 
 <body>
-  <h1>HTMLX + Service Workers + WebAssembly + Rust</h1>
+  <div class="nav-tabs" hx-target="closest body">
+    <a href="/" hx-get="/;nav" hx-push-url="/" class="selected">About</a>
+    <a href="/todos" hx-get="/todos;nav" hx-push-url="/todos">Todos</a>
+    <style>
+      .nav-tabs>a {
+        padding: 1em;
+        color: var(--text-bright);
+      }
+
+      .nav-tabs>a:hover {
+        background-color: var(--button-hover) !important;
+      }
+
+      .nav-tabs>a.selected {
+        background-color: var(--button-base);
+      }
+    </style>
+  </div>
+  <h1>HTMX + Service Workers + WebAssembly + Rust</h1>
   <div>
     This is a simple proof of concept that shows how you could use
     <a href="https://htmx.org/">HTMX</a> and Rust for frontend development.
@@ -22,31 +63,9 @@
   </div>
   <br />
   <div>
-    <button hx-post="/wasm/clicked" hx-swap="innerHTML" hx-target="#target">Click Me</button>
+    <button hx-post="/;clicked" hx-swap="innerHTML" hx-target="#target">Click Me</button>
     <div id="target"></div>
   </div>
 </body>
-<script>
-  const registerServiceWorker = async () => {
-    if ("serviceWorker" in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register("sw.js", { scope: location.origin, });
-        if (registration.installing) {
-          console.log("Service worker installing");
-        } else if (registration.waiting) {
-          console.log("Service worker installed");
-        } else if (registration.active) {
-          console.log("Service worker active");
-        }
-        console.log("Notifying serviceWorker", navigator.serviceWorker.controller.postMessage({ type: 'clientloaded' }));
-      } catch (error) {
-        console.error(`Registration failed with ${error}`);
-      }
-    } else {
-      console.error("serviceWorker is missing from `navigator`. Note that service workers require https or serving from localhost");
-    }
-  };
-  registerServiceWorker();
-</script>
 
 </html>
