@@ -354,13 +354,13 @@ mod todos {
 
     fn hx_add(request: &Request) -> String {
         #[derive(Deserialize)]
-        struct Form<'a> {
+        struct Form {
             #[serde(rename = "todo-new")]
-            todo_new: &'a str,
+            todo_new: String,
         }
         let label = match serde_urlencoded::from_str::<Form>(&request.body) {
             Err(e) => return html! { <p>"Error decoding form: " { e }</p> },
-            Ok(value) => value.todo_new.to_string(),
+            Ok(value) => value.todo_new,
         };
         let id = {
             let mut inc = TODO_INC.lock().unwrap();
