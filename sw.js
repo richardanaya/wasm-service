@@ -59,7 +59,7 @@ const skewnormal = (min, max, skew = 1, sigma = 4) => {
 
 ////**** Service Worker & WebAssembly instance lifecycle management ****////
 
-const appUri = "/app.wasm";
+const appUri = "app.wasm";
 
 // Enable debug logging on a running instance by setting DEBUG=true in the console.
 var DEBUG = false;
@@ -169,11 +169,10 @@ function writeUtf8ToMemory(app, bytes, start) {
 
 self.addEventListener("fetch", (event) => {
   let url = new URL(event.request.url);
-  const ignored = ["/sw.js", "/app.wasm"];
 
   let shouldOverride = url.origin === event.target.location.origin
-    && !url.pathname.startsWith("/assets/")
-    && !ignored.includes(url.pathname)
+    && !url.pathname.endsWith("sw.js")
+    && !url.pathname.endsWith("app.wasm")
     && WasmAppStatus().status === "resolved";
 
   if (DEBUG) console.log("fetch event received", { overriding: shouldOverride, method: event.request.method, url, event })

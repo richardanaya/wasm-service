@@ -33,8 +33,8 @@
 
 <body>
   <div class="nav-tabs" hx-target="closest body">
-    <a href="/" hx-get="/;nav" hx-push-url="/" class="selected">About</a>
-    <a href="/todos" hx-get="/todos;nav" hx-push-url="/todos">Todos</a>
+    <a href="" hx-get="./;nav" hx-push-url="" class="selected">About</a>
+    <a href="todos" hx-get="./todos;nav" hx-push-url="todos">Todos</a>
     <style>
       .nav-tabs>a {
         padding: 1em;
@@ -64,7 +64,7 @@
   </div>
   <br />
   <div>
-    <button hx-post="/;clicked" hx-swap="innerHTML" hx-target="#target">Click Me</button>
+    <button hx-post="./;clicked" hx-swap="innerHTML" hx-target="#target">Click Me</button>
     <div id="target"></div>
   </div>
 </body>
