@@ -4,6 +4,8 @@ This is a simple proof of concept that shows how you could use HTMX and Rust for
 
 See the demo here: https://richardanaya.github.io/wasm-service/
 
+You can also find a framework inspired by this PoC here: https://github.com/edezhic/prest
+
 # Developing `wasm-service`
 
 ## Install & build
